@@ -108,6 +108,8 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     const { id } = params;
+    const { searchParams } = new URL(request.url);
+    const force = searchParams.get('force') === 'true'; // 강제 삭제 옵션
 
     if (!id) {
       return NextResponse.json(
@@ -116,6 +118,47 @@ export async function DELETE(request, { params }) {
       );
     }
 
+    // 삭제 전에 이 아이콘을 사용하는 sites가 있는지 확인
+    const { data: sitesUsingIcon, error: checkError } = await supabaseAdmin
+      .from('sites')
+      .select('id, title')
+      .eq('icon_id', id)
+      .limit(5); // 최대 5개만 확인
+
+    if (!checkError && sitesUsingIcon && sitesUsingIcon.length > 0) {
+      // force 옵션이 없으면 에러 반환
+      if (!force) {
+        const siteNames = sitesUsingIcon.map(s => `${"'" + s.title + "'"}`).join(', ');
+        const moreCount = sitesUsingIcon.length === 5 ? ' 이상' : '';
+        return NextResponse.json(
+          {
+            error: '이 아이콘은 다른 곳에서 사용 중이어서 삭제할 수 없습니다.',
+            details: `사용 중인 장소 컨텐츠 ${moreCount}: ${siteNames}`,
+            canForceDelete: true // 강제 삭제 가능 여부 플래그
+          },
+          { status: 400 }
+        );
+      }
+
+      // force=true인 경우, sites의 icon_id를 null로 업데이트
+      const { error: updateError } = await supabaseAdmin
+        .from('sites')
+        .update({ icon_id: null })
+        .eq('icon_id', id);
+
+      if (updateError) {
+        console.error('Sites update error:', updateError);
+        return NextResponse.json(
+          {
+            error: '사이트 아이콘 업데이트에 실패했습니다',
+            details: updateError.message
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+    // 아이콘 삭제
     const { data, error } = await supabaseAdmin
       .from('icon')
       .delete()
@@ -124,6 +167,25 @@ export async function DELETE(request, { params }) {
 
     if (error) {
       console.error('Icon delete error:', error);
+      // 외래 키 제약조건 에러 체크 (PostgreSQL 에러 코드 23503 또는 메시지에 포함된 경우)
+      const errorMessage = error.message || '';
+      const errorCode = error.code || '';
+
+      if (
+        errorCode === '23503' ||
+        errorMessage.includes('foreign key constraint') ||
+        errorMessage.includes('violates foreign key constraint') ||
+        errorMessage.includes('sites_icon_id_fkey')
+      ) {
+        return NextResponse.json(
+          {
+            error: '이 아이콘은 다른 곳에서 사용 중이어서 삭제할 수 없습니다',
+            details: '장소 컨텐츠에서 이 아이콘을 사용 중입니다. 먼저 장소 컨텐츠의 아이콘을 변경해주세요.',
+            canForceDelete: true // 강제 삭제 가능 여부 플래그
+          },
+          { status: 400 }
+        );
+      }
       return NextResponse.json(
         { error: 'Failed to delete icon', details: error.message },
         { status: 500 }
@@ -132,7 +194,7 @@ export async function DELETE(request, { params }) {
 
     if (!data || data.length === 0) {
       return NextResponse.json(
-        { error: 'Icon not found' },
+        { error: 'Icon not found', details: '해당 아이콘을 찾을 수 없습니다' },
         { status: 404 }
       );
     }
@@ -140,7 +202,7 @@ export async function DELETE(request, { params }) {
     return NextResponse.json({
       success: true,
       data: data[0],
-      message: 'Icon deleted successfully'
+      message: force ? '아이콘이 삭제되었고, 관련 장소 컨텐츠의 아이콘이 제거되었습니다.' : 'Icon deleted successfully'
     });
 
   } catch (error) {

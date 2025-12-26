@@ -11,6 +11,7 @@ export async function GET(request) {
     const { data, error } = await supabaseAdmin
       .from('theme')
       .select('*')
+      .order('order', { ascending: true, nullsLast: true })
       .order('created_at', { ascending: false })
       .range(parseInt(offset), parseInt(offset) + parseInt(limit) - 1);
 
@@ -41,7 +42,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { title } = body;
+    const { title, order } = body;
 
     if (!title) {
       return NextResponse.json(
@@ -50,9 +51,14 @@ export async function POST(request) {
       );
     }
 
+    const insertData = { title };
+    if (order !== undefined && order !== null) {
+      insertData.order = order;
+    }
+
     const { data, error } = await supabaseAdmin
       .from('theme')
-      .insert([{ title }])
+      .insert([insertData])
       .select();
 
     if (error) {

@@ -63,7 +63,7 @@ const useCluster = () => {
   }, []);
 
   // 클러스터 생성
-  const createCluster = useCallback(async (title, themeId) => {
+  const createCluster = useCallback(async (title, themeId, intro = false, toggle = false, address = false) => {
     setLoading(true);
     setError(null);
 
@@ -73,7 +73,13 @@ const useCluster = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title, theme_id: themeId }),
+        body: JSON.stringify({
+          title,
+          theme_id: themeId,
+          intro: Boolean(intro),
+          toggle: Boolean(toggle),
+          address: Boolean(address),
+        }),
       });
 
       const result = await response.json();
@@ -95,7 +101,7 @@ const useCluster = () => {
   }, []);
 
   // 클러스터 수정
-  const updateCluster = useCallback(async (id, title, themeId = null) => {
+  const updateCluster = useCallback(async (id, title, themeId = null, order, intro, toggle, address) => {
     setLoading(true);
     setError(null);
 
@@ -103,6 +109,18 @@ const useCluster = () => {
       const updateData = { title };
       if (themeId) {
         updateData.theme_id = themeId;
+      }
+      if (order !== undefined) {
+        updateData.order = order;
+      }
+      if (intro !== undefined) {
+        updateData.intro = Boolean(intro);
+      }
+      if (toggle !== undefined) {
+        updateData.toggle = Boolean(toggle);
+      }
+      if (address !== undefined) {
+        updateData.address = Boolean(address);
       }
 
       const response = await fetch(`/api/cluster/${id}`, {
@@ -148,16 +166,21 @@ const useCluster = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to delete cluster');
+        const errorMessage = result.error || 'Failed to delete cluster';
+        const error = new Error(errorMessage);
+        error.details = result.details || '';
+        error.originalResult = result;
+        throw error;
       }
 
-      // 로컬 상태 업데이트
+      // 성공 시 에러 상태 초기화 및 로컬 상태 업데이트
+      setError(null);
       setClusters(prev => prev.filter(cluster => cluster.id !== id));
       return result.data;
     } catch (err) {
-      setError(err.message);
+      // 에러를 throw하여 호출하는 쪽에서 처리할 수 있도록
       console.error('Delete cluster error:', err);
-      return null;
+      throw err;
     } finally {
       setLoading(false);
     }

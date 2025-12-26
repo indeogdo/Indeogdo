@@ -41,7 +41,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { img } = body;
+    const { img, img_active } = body;
 
     if (!img) {
       return NextResponse.json(
@@ -52,7 +52,7 @@ export async function POST(request) {
 
     const { data, error } = await supabaseAdmin
       .from('icon')
-      .insert([{ img }])
+      .insert([{ img, img_active }])
       .select();
 
     if (error) {

@@ -16,13 +16,22 @@ export async function GET(request) {
         *,
         cluster:cluster_id (
           id,
-          title
+          title,
+          address
         ),
         icon:icon_id (
           id,
-          img
+          img,
+          img_active
+        ),
+        addresses:address (
+          id,
+          name,
+          latitude,
+          longitude
         )
       `)
+      .order('order', { ascending: true, nullsLast: true })
       .order('created_at', { ascending: false })
       .range(parseInt(offset), parseInt(offset) + parseInt(limit) - 1);
 
@@ -65,7 +74,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { title, address, latitude, longitude, contents, cluster_id, icon_id } = body;
+    const { title, contents, cluster_id, icon_id, order, area } = body;
 
     if (!title) {
       return NextResponse.json(
@@ -95,12 +104,15 @@ export async function POST(request) {
       );
     }
 
+    // icon_id 정규화 (빈 문자열을 null로 변환)
+    const normalizedIconId = (icon_id === '' ? null : icon_id);
+
     // icon_id가 제공된 경우 유효성 확인
-    if (icon_id) {
+    if (normalizedIconId) {
       const { data: iconExists, error: iconError } = await supabaseAdmin
         .from('icon')
         .select('id')
-        .eq('id', icon_id)
+        .eq('id', normalizedIconId)
         .single();
 
       if (iconError || !iconExists) {
@@ -111,26 +123,36 @@ export async function POST(request) {
       }
     }
 
+    const insertData = {
+      title,
+      contents,
+      cluster_id,
+      icon_id: normalizedIconId
+    };
+
+    if (order !== undefined && order !== null) insertData.order = order;
+    if (area !== undefined && area !== null) insertData.area = area;
+
     const { data, error } = await supabaseAdmin
       .from('sites')
-      .insert([{
-        title,
-        address,
-        latitude,
-        longitude,
-        contents,
-        cluster_id,
-        icon_id
-      }])
+      .insert([insertData])
       .select(`
         *,
         cluster:cluster_id (
           id,
-          title
+          title,
+          address
         ),
         icon:icon_id (
           id,
-          img
+          img,
+          img_active
+        ),
+        addresses:address (
+          id,
+          name,
+          latitude,
+          longitude
         )
       `);
 

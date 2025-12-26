@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 // 장소 검색을 위한 커스텀 훅
 const useMapSearch = (mapInstance, zoomLevel) => {
@@ -38,6 +38,13 @@ const useMapSearch = (mapInstance, zoomLevel) => {
     }
   }, [mapInstance]);
 
+  const removeSearchMarker = useCallback(() => {
+    if (window._searchMarker) {
+      window._searchMarker.setMap(null);
+      window._searchMarker = null;
+    }
+  }, []);
+
   // 검색 결과 클릭 핸들러
   const handleResultClick = useCallback((place) => {
     if (!mapInstance) return;
@@ -56,34 +63,74 @@ const useMapSearch = (mapInstance, zoomLevel) => {
       mapInstance.setCenter(location);
       mapInstance.setZoom(zoomLevel);
 
-      // 기존 마커 제거
-      const markers = document.querySelectorAll('[data-marker]');
-      markers.forEach(marker => marker.remove());
+      // 기존 검색 마커 제거
+      removeSearchMarker();
 
-      // 새로운 마커 생성
+      // 기본 마커 사용 (POI 마커와 동일한 방식)
       const marker = new window.google.maps.Marker({
         position: location,
         map: mapInstance,
-        title: name
+        title: name,
+        icon: {
+          url: '/icon/marker.png',
+          scaledSize: new window.google.maps.Size(32, 32),
+          anchor: new window.google.maps.Point(16, 16)
+        },
+        animation: window.google.maps.Animation.DROP
       });
 
-      // 마커에 식별자 추가
-      if (marker.getElement && typeof marker.getElement === 'function') {
-        marker.getElement().setAttribute('data-marker', 'true');
-      } else {
-        marker._isSearchMarker = true;
-      }
+      // 애니메이션 제거
+      setTimeout(() => {
+        marker.setAnimation(null);
+      }, 1000);
+
+      // 마커에 식별자 추가 및 전역 참조 저장
+      marker._isSearchMarker = true;
+      window._searchMarker = marker;
 
       setSearchResults([]);
     } catch (error) {
       console.error('마커 추가 중 오류:', error);
     }
-  }, [mapInstance, zoomLevel]);
+  }, [mapInstance, zoomLevel, removeSearchMarker]);
+
+  // 지도 클릭 시 검색 마커 제거
+  useEffect(() => {
+    if (!mapInstance || !window.google || !window.google.maps) {
+      return;
+    }
+
+    const listeners = [
+      mapInstance.addListener('click', removeSearchMarker),
+      mapInstance.addListener('dragstart', removeSearchMarker)
+    ];
+
+    const mapDiv = mapInstance.getDiv();
+    if (mapDiv) {
+      mapDiv.addEventListener('mousedown', removeSearchMarker, true);
+    }
+
+    return () => {
+      listeners.forEach((listener) => {
+        if (!listener) return;
+        if (typeof listener.remove === 'function') {
+          listener.remove();
+        } else if (window.google?.maps?.event) {
+          window.google.maps.event.removeListener(listener);
+        }
+      });
+
+      if (mapDiv) {
+        mapDiv.removeEventListener('mousedown', removeSearchMarker, true);
+      }
+    };
+  }, [mapInstance, removeSearchMarker]);
 
   // 검색 결과 초기화
   const clearSearchResults = useCallback(() => {
     setSearchResults([]);
-  }, []);
+    removeSearchMarker();
+  }, [removeSearchMarker]);
 
   return {
     searchResults,

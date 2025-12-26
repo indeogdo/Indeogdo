@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import BoardContainer from '@/container/BoardContainer';
+import * as S from '@/styles/Sites/board.style';
 
 export default function SitePage({ params }) {
   const { id } = use(params);
@@ -41,13 +42,13 @@ export default function SitePage({ params }) {
 
   if (loading) {
     return (
-      <>{'로딩 중...'}</>
+      <S.BoardLoading></S.BoardLoading>
     );
   }
 
   if (error) {
     return (
-      <>{error.message}</>
+      <S.BoardLoading>{error.message}</S.BoardLoading>
     );
   }
 

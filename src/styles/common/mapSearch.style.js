@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import { theme } from '@/styles/Theme';
 
 export const MapSearchContainer = styled.div`
   position: fixed;
@@ -6,6 +7,14 @@ export const MapSearchContainer = styled.div`
   left: 320px;
   right: 20px;
   z-index: 10;
+
+  ${theme.media.mobile} {
+    left: 0px;
+    right: unset;
+    top: unset;
+    width: calc(100dvw - 70px);
+    margin: 12px 8px;
+  }
 `
 export const MapSearchForm = styled.form`
   width: 300px;
@@ -18,6 +27,7 @@ export const MapSearchForm = styled.form`
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   display: flex;
   align-items: center;
+  color: black;
   justify-content: space-between;
   gap: 10px;
 
@@ -28,6 +38,10 @@ export const MapSearchForm = styled.form`
   &:hover {
     outline: 1px solid #74b7ff;
   }
+
+  ${theme.media.mobile} {
+    width: 100%;
+  }
 `
 
 export const MapSearchInput = styled.input`
@@ -37,6 +51,22 @@ export const MapSearchInput = styled.input`
   outline: none;
   font-size: 1.2rem;
   background-color: transparent;
+  color: black;
+  
+  /* iOS Safari에서 인풋 포커스 시 확대 방지 */
+  font-size: 16px;
+  -webkit-appearance: none;
+  -webkit-border-radius: 0;
+  border-radius: 0;
+  
+  /* iOS에서 줌 방지 */
+  @media screen and (-webkit-min-device-pixel-ratio: 0) {
+    font-size: 16px !important;
+  }
+  
+  ${theme.media.mobile} {
+    font-size: 16px;
+  }
 `
 
 export const MapSearchButton = styled.button`
@@ -55,7 +85,12 @@ export const MapSearchResultsList = styled.ul`
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   position: relative;
-  z-index: 2;
+  z-index: 10;
+
+  ${theme.media.mobile} {
+    width: calc(100dvw - 78px);
+    margin-left: 5px;
+  }
 `
 
 export const MapSearchResultItem = styled.li`

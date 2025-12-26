@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import useMobile from '@/hooks/useMobile';
 
 // 지도 초기화를 위한 커스텀 훅
 const useMapInitialization = () => {
@@ -9,6 +10,7 @@ const useMapInitialization = () => {
   const [mapInstance, setMapInstance] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(17);
   const [initialPosition, setInitialPosition] = useState(null);
+  const isMobile = useMobile();
 
   // 지도 스타일 함수
   const getMapStyles = useCallback(() => {
@@ -72,7 +74,7 @@ const useMapInitialization = () => {
             "color": "#ffffff"
           },
           {
-            "weight": "1.00"
+            "weight": "2.94"
           }
         ]
       },
@@ -89,6 +91,9 @@ const useMapInitialization = () => {
         "featureType": "administrative",
         "elementType": "geometry.fill",
         "stylers": [
+          {
+            "visibility": "on"
+          },
           {
             "weight": "1.14"
           }
@@ -108,10 +113,10 @@ const useMapInitialization = () => {
         "elementType": "geometry.fill",
         "stylers": [
           {
-            "color": "#040404"
+            "visibility": "off"
           },
           {
-            "visibility": "off"
+            "color": "#040404"
           }
         ]
       },
@@ -121,27 +126,6 @@ const useMapInitialization = () => {
         "stylers": [
           {
             "visibility": "on"
-          }
-        ]
-      },
-      {
-        "featureType": "administrative.land_parcel",
-        "elementType": "labels.text.stroke",
-        "stylers": [
-          {
-            "weight": "0.70"
-          },
-          {
-            "visibility": "off"
-          }
-        ]
-      },
-      {
-        "featureType": "landscape",
-        "elementType": "labels.icon",
-        "stylers": [
-          {
-            "visibility": "off"
           }
         ]
       },
@@ -155,66 +139,51 @@ const useMapInitialization = () => {
         ]
       },
       {
-        "featureType": "landscape.natural.landcover",
-        "elementType": "geometry.fill",
-        "stylers": [
-          {
-            "visibility": "off"
-          }
-        ]
-      },
-      {
-        "featureType": "landscape.natural.terrain",
+        "featureType": "poi.park",
         "elementType": "all",
         "stylers": [
           {
-            "visibility": "off"
+            "visibility": "on"
           }
         ]
       },
+      // {
+      //   "featureType": "poi.park",
+      //   "elementType": "geometry.fill",
+      //   "stylers": [
+      //     // {
+      //     //   "color": "#AADAE0"
+      //     // }
+      //     {
+      //       "color": "#A8DCD7"
+      //     }
+      //   ]
+      // },
       {
-        "featureType": "poi",
-        "elementType": "labels.text.stroke",
+        "featureType": "poi.park",
+        "elementType": "labels.text.fill",
         "stylers": [
           {
-            "visibility": "off"
-          }
-        ]
-      },
-      {
-        "featureType": "poi.attraction",
-        "elementType": "all",
-        "stylers": [
-          {
-            "visibility": "off"
-          }
-        ]
-      },
-      {
-        "featureType": "poi.medical",
-        "elementType": "all",
-        "stylers": [
-          {
-            "visibility": "off"
+            "color": "#000000"
           }
         ]
       },
       {
         "featureType": "poi.park",
-        "elementType": "geometry.fill",
+        "elementType": "labels.icon",
         "stylers": [
           {
-            "visibility": "off"
-          },
-          {
-            "color": "#e5e5e7"
+            "color": "#d1ff0b"
           }
         ]
       },
       {
         "featureType": "road",
-        "elementType": "geometry.fill",
+        "elementType": "geometry",
         "stylers": [
+          {
+            "visibility": "on"
+          },
           {
             "color": "#fffbfb"
           }
@@ -222,10 +191,19 @@ const useMapInitialization = () => {
       },
       {
         "featureType": "road",
-        "elementType": "labels.icon",
+        "elementType": "geometry.stroke",
         "stylers": [
           {
-            "visibility": "off"
+            "color": "#000000"
+          }
+        ]
+      },
+      {
+        "featureType": "road",
+        "elementType": "labels.text.stroke",
+        "stylers": [
+          {
+            "weight": "1.56"
           }
         ]
       },
@@ -234,7 +212,19 @@ const useMapInitialization = () => {
         "elementType": "all",
         "stylers": [
           {
+            "weight": "1.44"
+          },
+          {
             "visibility": "on"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "weight": "0"
           }
         ]
       },
@@ -245,81 +235,81 @@ const useMapInitialization = () => {
           {
             "color": "#ffffff"
           },
+          {
+            "weight": "10"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway",
+        "elementType": "geometry.stroke",
+        "stylers": [
+          {
+            "color": "#000000"
+          },
+          {
+            "weight": "1.2"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway",
+        "elementType": "labels.text",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway",
+        "elementType": "labels.icon",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway.controlled_access",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "weight": "0"
+          }
+        ]
+      },
+      {
+        "featureType": "road.arterial",
+        "elementType": "all",
+        "stylers": [
+          {
+            "visibility": "on"
+          },
+          {
+            "weight": "4.40"
+          }
+        ]
+      },
+      {
+        "featureType": "road.arterial",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "weight": "1.33"
+          }
+        ]
+      },
+      {
+        "featureType": "road.arterial",
+        "elementType": "geometry.fill",
+        "stylers": [
           {
             "weight": "10.00"
           }
         ]
       },
       {
-        "featureType": "road.highway",
-        "elementType": "geometry.stroke",
-        "stylers": [
-          {
-            "color": "#000000"
-          },
-          {
-            "weight": "1.20"
-          }
-        ]
-      },
-      {
-        "featureType": "road.highway",
-        "elementType": "labels.text.fill",
-        "stylers": [
-          {
-            "color": "#000000"
-          }
-        ]
-      },
-      {
-        "featureType": "road.highway",
-        "elementType": "labels.icon",
-        "stylers": [
-          {
-            "visibility": "off"
-          }
-        ]
-      },
-      {
-        "featureType": "road.highway.controlled_access",
-        "elementType": "all",
-        "stylers": [
-          {
-            "visibility": "on"
-          },
-          {
-            "weight": "1.00"
-          }
-        ]
-      },
-      {
-        "featureType": "road.highway.controlled_access",
-        "elementType": "labels.icon",
-        "stylers": [
-          {
-            "visibility": "off"
-          }
-        ]
-      },
-      {
-        "featureType": "road.arterial",
-        "elementType": "all",
-        "stylers": [
-          {
-            "visibility": "on"
-          }
-        ]
-      },
-      {
-        "featureType": "road.arterial",
-        "elementType": "labels.icon",
-        "stylers": [
-          {
-            "visibility": "off"
-          }
-        ]
-      },
-      {
         "featureType": "road.local",
         "elementType": "all",
         "stylers": [
@@ -327,7 +317,7 @@ const useMapInitialization = () => {
             "visibility": "on"
           },
           {
-            "weight": "0.97"
+            "weight": "1.11"
           }
         ]
       },
@@ -335,60 +325,12 @@ const useMapInitialization = () => {
         "featureType": "road.local",
         "elementType": "geometry.fill",
         "stylers": [
-          {
-            "visibility": "on"
-          },
           {
             "color": "#fbfbfb"
           }
         ]
       },
       {
-        "featureType": "road.local",
-        "elementType": "labels.icon",
-        "stylers": [
-          {
-            "visibility": "off"
-          }
-        ]
-      },
-      {
-        "featureType": "transit",
-        "elementType": "all",
-        "stylers": [
-          {
-            "visibility": "off"
-          }
-        ]
-      },
-      {
-        "featureType": "transit",
-        "elementType": "geometry.fill",
-        "stylers": [
-          {
-            "color": "#ff0000"
-          }
-        ]
-      },
-      {
-        "featureType": "transit",
-        "elementType": "geometry.stroke",
-        "stylers": [
-          {
-            "color": "#ff0000"
-          }
-        ]
-      },
-      {
-        "featureType": "transit",
-        "elementType": "labels.icon",
-        "stylers": [
-          {
-            "visibility": "off"
-          }
-        ]
-      },
-      {
         "featureType": "water",
         "elementType": "all",
         "stylers": [
@@ -402,13 +344,10 @@ const useMapInitialization = () => {
         "elementType": "geometry.fill",
         "stylers": [
           {
-            "visibility": "on"
-          },
-          {
             "color": "#000000"
           },
           {
-            "weight": "0.56"
+            "weight": "2.21"
           }
         ]
       },
@@ -418,6 +357,9 @@ const useMapInitialization = () => {
         "stylers": [
           {
             "color": "#ffffff"
+          },
+          {
+            "weight": "0.01"
           }
         ]
       },
@@ -426,18 +368,23 @@ const useMapInitialization = () => {
         "elementType": "labels.text.stroke",
         "stylers": [
           {
-            "color": "#fcfcfc"
+            "color": "#ff0000"
           },
           {
-            "weight": "3.67"
+            "weight": "3.74"
           }
         ]
       }
     ];
   }, []);
 
-  // 구글 지도 초기화
+  // 구글 지도 초기화 (한 번만 실행)
   useEffect(() => {
+    // 이미 초기화된 경우 재초기화하지 않음
+    if (mapInitialized) {
+      return;
+    }
+
     const initMap = async () => {
       // DOM 요소가 준비될 때까지 대기
       const waitForElement = () => {
@@ -453,10 +400,10 @@ const useMapInitialization = () => {
           setLoading(true);
           setError(null);
 
-          // 모바일 감지
-          const isMobile = window.innerWidth <= 768;
-          const lat = isMobile ? 37.400409 : 37.400409;
-          const lng = isMobile ? 126.974294 : 126.974294;
+          const lat = 37.400409;
+          const lng = 126.974294;
+          // 모바일에서는 줌 레벨을 낮춰서 더 넓은 범위 표시
+          const zoom = isMobile ? Math.max(zoomLevel - 1, 15) : zoomLevel;
 
           // 서버에서 API 키 가져오기
           const response = await fetch('/api/maps/script');
@@ -471,21 +418,21 @@ const useMapInitialization = () => {
             // 이미 로드된 경우 바로 지도 생성
             const map = new google.maps.Map(mapRef.current, {
               center: { lat, lng },
-              zoom: zoomLevel,
+              zoom,
               mapTypeId: 'roadmap',
               disableDefaultUI: true,
-              styles: getMapStyles()
+              styles: getMapStyles() // mapId 제거, styles 직접 설정
             });
             setMapInstance(map);
             setLoading(false);
             setMapInitialized(true);
-            setInitialPosition({ lat, lng, zoom: zoomLevel });
+            setInitialPosition({ lat, lng, zoom });
             return;
           }
 
-          // 구글 지도 스크립트 동적 로드
+          // 구글 지도 스크립트 동적 로드 (marker 라이브러리 추가)
           const script = document.createElement('script');
-          script.src = `https://maps.googleapis.com/maps/api/js?key=${data.apiKey}&loading=async&region=KR&language=ko&libraries=places&v=weekly`;
+          script.src = `https://maps.googleapis.com/maps/api/js?key=${data.apiKey}&loading=async&region=KR&language=ko&libraries=places,marker&v=weekly`;
           script.async = true;
           script.defer = true;
 
@@ -494,15 +441,15 @@ const useMapInitialization = () => {
               try {
                 const map = new google.maps.Map(mapRef.current, {
                   center: { lat, lng },
-                  zoom: zoomLevel,
+                  zoom,
                   mapTypeId: 'roadmap',
                   disableDefaultUI: true,
-                  styles: getMapStyles()
+                  styles: getMapStyles() // mapId 제거, styles 직접 설정
                 });
                 setMapInstance(map);
                 setLoading(false);
                 setMapInitialized(true);
-                setInitialPosition({ lat, lng, zoom: zoomLevel });
+                setInitialPosition({ lat, lng, zoom });
               } catch (error) {
                 console.error('Map initialization error:', error);
                 setError(error.message);
@@ -533,7 +480,16 @@ const useMapInitialization = () => {
     }, 200);
 
     return () => clearTimeout(timer);
-  }, [zoomLevel, getMapStyles]);
+  }, [getMapStyles, mapInitialized, zoomLevel, isMobile]); // zoomLevel, isMobile 추가하여 초기화 시에도 반영
+
+  // zoomLevel 변경 시 기존 지도의 zoom만 업데이트
+  useEffect(() => {
+    if (mapInstance && mapInitialized) {
+      // 모바일에서는 줌 레벨을 낮춰서 더 넓은 범위 표시
+      const currentZoom = isMobile ? Math.max(zoomLevel - 1, 15) : zoomLevel;
+      mapInstance.setZoom(currentZoom);
+    }
+  }, [zoomLevel, mapInstance, mapInitialized, isMobile]);
 
   // 컴포넌트 언마운트 시 정리
   useEffect(() => {

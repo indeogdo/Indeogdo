@@ -63,11 +63,19 @@ html,
 body {
   max-width: 100dvw;
   overflow-x: hidden;
+  /* iOS Safari에서 인풋 클릭 시 확대 방지 */
+  -webkit-text-size-adjust: 100%;
+  /* -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none; */
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: black;
+  background: white;
   font-family: 'Sweet', Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -148,8 +156,46 @@ body {
   font-size: 1rem;
 }
 
+/* 인풋 요소들은 텍스트 선택 허용 */
+input,
+textarea,
+select {
+  -webkit-user-select: text;
+  -khtml-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+  /* iOS에서 인풋 포커스 시 확대 방지 */
+  font-size: 16px;
+}
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
   }
+}
+
+/* 구글 지도 하단 로고 및 컨트롤 숨기기 */
+.gm-style-cc,
+a[href*="google.com/maps"],
+.gm-style-mtc,
+.gm-bundled-control,
+.gm-style-cc>div,
+.gm-style-cc>a,
+div[style*="position: absolute"][style*="left: 0px"][style*="bottom: 0px"] a[href*="google"],
+div[style*="position: absolute"][style*="right: 0px"][style*="bottom: 0px"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* 구글 지도 하단 영역 전체 숨기기 */
+.gm-style>div:last-child>div:last-child {
+  display: none !important;
+}
+
+/* 구글 지도 하단 왼쪽 영역 (로고) */
+.gm-style>div:last-child>div:first-child {
+  display: none !important;
 }

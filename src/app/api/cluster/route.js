@@ -18,6 +18,7 @@ export async function GET(request) {
           title
         )
       `)
+      .order('order', { ascending: true, nullsLast: true })
       .order('created_at', { ascending: false })
       .range(parseInt(offset), parseInt(offset) + parseInt(limit) - 1);
 
@@ -55,7 +56,14 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { title, theme_id } = body;
+    const {
+      title,
+      theme_id,
+      order,
+      intro = false,
+      toggle = false,
+      address = false,
+    } = body;
 
     if (!title) {
       return NextResponse.json(
@@ -85,9 +93,20 @@ export async function POST(request) {
       );
     }
 
+    const insertData = {
+      title,
+      theme_id,
+      intro: Boolean(intro),
+      toggle: Boolean(toggle),
+      address: Boolean(address),
+    };
+    if (order !== undefined && order !== null) {
+      insertData.order = order;
+    }
+
     const { data, error } = await supabaseAdmin
       .from('cluster')
-      .insert([{ title, theme_id }])
+      .insert([insertData])
       .select(`
         *,
         theme:theme_id (

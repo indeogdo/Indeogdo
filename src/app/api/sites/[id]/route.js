@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
 // 특정 Site 조회
-export async function GET(request, { params }) {
+export async function GET(request, context) {
   try {
-    const { id } = params;
+    const { id } = await context.params;
 
     if (!id) {
       return NextResponse.json(
@@ -19,11 +19,19 @@ export async function GET(request, { params }) {
         *,
         cluster:cluster_id (
           id,
-          title
+          title,
+          address
         ),
         icon:icon_id (
           id,
-          img
+          img,
+          img_active
+        ),
+        addresses:address (
+          id,
+          name,
+          latitude,
+          longitude
         )
       `)
       .eq('id', id)
@@ -58,11 +66,13 @@ export async function GET(request, { params }) {
 }
 
 // Site 수정
-export async function PUT(request, { params }) {
+export async function PUT(request, context) {
   try {
-    const { id } = params;
+    const { id } = await context.params;
     const body = await request.json();
-    const { title, address, latitude, longitude, contents, cluster_id, icon_id } = body;
+    const { title, contents, cluster_id, icon_id, order, area } = body;
+    const normalizedClusterId = (cluster_id === '' ? null : cluster_id);
+    const normalizedIconId = (icon_id === '' ? null : icon_id);
 
     if (!id) {
       return NextResponse.json(
@@ -79,11 +89,11 @@ export async function PUT(request, { params }) {
     }
 
     // cluster_id가 변경되는 경우 유효성 검사
-    if (cluster_id) {
+    if (normalizedClusterId !== undefined && normalizedClusterId !== null) {
       const { data: clusterExists, error: clusterError } = await supabaseAdmin
         .from('cluster')
         .select('id')
-        .eq('id', cluster_id)
+        .eq('id', normalizedClusterId)
         .single();
 
       if (clusterError || !clusterExists) {
@@ -95,11 +105,11 @@ export async function PUT(request, { params }) {
     }
 
     // icon_id가 변경되는 경우 유효성 검사
-    if (icon_id) {
+    if (normalizedIconId !== undefined && normalizedIconId !== null) {
       const { data: iconExists, error: iconError } = await supabaseAdmin
         .from('icon')
         .select('id')
-        .eq('id', icon_id)
+        .eq('id', normalizedIconId)
         .single();
 
       if (iconError || !iconExists) {
@@ -111,12 +121,11 @@ export async function PUT(request, { params }) {
     }
 
     const updateData = { title };
-    if (address !== undefined) updateData.address = address;
-    if (latitude !== undefined) updateData.latitude = latitude;
-    if (longitude !== undefined) updateData.longitude = longitude;
     if (contents !== undefined) updateData.contents = contents;
-    if (cluster_id) updateData.cluster_id = cluster_id;
-    if (icon_id !== undefined) updateData.icon_id = icon_id;
+    if (normalizedClusterId !== undefined) updateData.cluster_id = normalizedClusterId;
+    if (normalizedIconId !== undefined) updateData.icon_id = normalizedIconId;
+    if (order !== undefined && order !== null) updateData.order = order;
+    if (area !== undefined && area !== null) updateData.area = area;
 
     const { data, error } = await supabaseAdmin
       .from('sites')
@@ -126,11 +135,19 @@ export async function PUT(request, { params }) {
         *,
         cluster:cluster_id (
           id,
-          title
+          title,
+          address
         ),
         icon:icon_id (
           id,
-          img
+          img,
+          img_active
+        ),
+        addresses:address (
+          id,
+          name,
+          latitude,
+          longitude
         )
       `);
 
@@ -165,9 +182,9 @@ export async function PUT(request, { params }) {
 }
 
 // Site 삭제
-export async function DELETE(request, { params }) {
+export async function DELETE(request, context) {
   try {
-    const { id } = params;
+    const { id } = await context.params;
 
     if (!id) {
       return NextResponse.json(
@@ -176,6 +193,67 @@ export async function DELETE(request, { params }) {
       );
     }
 
+    // 먼저 해당 site를 조회하여 존재 여부 확인
+    const { data: siteData, error: siteFetchError } = await supabaseAdmin
+      .from('sites')
+      .select(`
+        *,
+        cluster:cluster_id (
+          id,
+          title,
+          address
+        ),
+        icon:icon_id (
+          id,
+          img,
+          img_active
+        ),
+        addresses:address (
+          id,
+          name,
+          latitude,
+          longitude
+        )
+      `)
+      .eq('id', id)
+      .single();
+
+    if (siteFetchError) {
+      if (siteFetchError.code === 'PGRST116') {
+        return NextResponse.json(
+          { error: 'Site not found' },
+          { status: 404 }
+        );
+      }
+      console.error('Site fetch error:', siteFetchError);
+      return NextResponse.json(
+        { error: 'Failed to fetch site', details: siteFetchError.message },
+        { status: 500 }
+      );
+    }
+
+    if (!siteData) {
+      return NextResponse.json(
+        { error: 'Site not found' },
+        { status: 404 }
+      );
+    }
+
+    // 해당 site_id를 참조하는 address 레코드들 삭제
+    const { error: addressDeleteError } = await supabaseAdmin
+      .from('address')
+      .delete()
+      .eq('site_id', id);
+
+    if (addressDeleteError) {
+      console.error('Address delete error:', addressDeleteError);
+      return NextResponse.json(
+        { error: 'Failed to delete related addresses', details: addressDeleteError.message },
+        { status: 500 }
+      );
+    }
+
+    // address 삭제 후 site 삭제
     const { data, error } = await supabaseAdmin
       .from('sites')
       .delete()
@@ -184,11 +262,13 @@ export async function DELETE(request, { params }) {
         *,
         cluster:cluster_id (
           id,
-          title
+          title,
+          address
         ),
         icon:icon_id (
           id,
-          img
+          img,
+          img_active
         )
       `);
 
@@ -210,7 +290,7 @@ export async function DELETE(request, { params }) {
     return NextResponse.json({
       success: true,
       data: data[0],
-      message: 'Site deleted successfully'
+      message: 'Site and related addresses deleted successfully'
     });
 
   } catch (error) {

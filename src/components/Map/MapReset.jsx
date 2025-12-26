@@ -1,15 +1,16 @@
 import styled from '@emotion/styled';
+import { theme } from '@/styles/Theme';
 
 const MapResetButton = styled.button`
   position: fixed;
-  top: 65px;
+  top: 63px;
   left: 325px;
-  z-index: 29;
+  z-index: 4;
   background-color: white;
   border: 1.6px solid black;
   border-radius: 50%;
-  padding: 5px;
-  padding-left: 6px;
+  // padding: 5px;
+  // padding-left: 6px;
   font-size: 1.2rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   display: flex;
@@ -23,11 +24,17 @@ const MapResetButton = styled.button`
     background-color: #f0f0f0;
     transform: scale(1.1);
   }
+
+  ${theme.media.mobile} {
+    left: unset;
+    right: 8px;
+    top: 12px;
+  }
 `;
 
 const MapResetIcon = styled.img`
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
 `;
 
@@ -40,7 +47,7 @@ function MapReset({ onReset }) {
 
   return (
     <MapResetButton onClick={handleClick} title="도시공상가로 돌아가기">
-      <MapResetIcon src="/icon/logo.png" alt="map-reset" />
+      <MapResetIcon src="/icon/indeogdo.png" alt="map-reset" />
     </MapResetButton>
   );
 }

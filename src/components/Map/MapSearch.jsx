@@ -21,9 +21,12 @@ function MapSearch({
   };
 
   const handleFocusOut = () => {
-    if (onFocusOut) {
-      onFocusOut();
-    }
+    // 약간의 지연을 추가하여 클릭 이벤트가 먼저 처리되도록 함
+    setTimeout(() => {
+      if (onFocusOut) {
+        onFocusOut();
+      }
+    }, 150);
   };
 
   return (
@@ -52,7 +55,8 @@ function MapSearch({
           {searchResults.map((place, index) => (
             <S.MapSearchResultItem
               key={place.place_id}
-              onClick={() => {
+              onMouseDown={(e) => {
+                e.preventDefault(); // onBlur 이벤트가 발생하지 않도록 함
                 onResultClick(place);
                 setSearchQuery('');
               }}
