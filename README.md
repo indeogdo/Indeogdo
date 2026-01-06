@@ -1,43 +1,6 @@
-<style>
-  .header-container {
-    display: flex;
-    gap: 10px;
-    word-break: keep-all;
-  }
-  .header-content {
-    word-break: keep-all;
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 0 10px;
-    text-align: center;
-  }
-  .header-info{
-    margin: auto 22px 12px 0; 
-    border-left: 0.5px black solid; 
-    padding-left: 15px;
-  }
- 
-  @media (max-width: 768px) {
-    .header-container {
-      flex-direction: column;
-    }
-    .header-content {
-      max-width: 100%;
-      padding: 0;
-    }
-    .header-info {
-      margin: 0 auto;
-      border-left: none;
-      padding-left: 0;
-      padding-top: 15px;
-      text-align: center;
-    }
-  }
-</style>
+<div style="display: flex; gap: 10px; word-break: keep-all; flex-wrap: wrap;">
 
-<div class="header-container">
-
-<div class="header-content">
+<div style="word-break: keep-all; max-width: 600px; margin: 0 auto; padding: 0 10px; text-align: center; flex: 1; min-width: 300px;">
 <h2 style="margin: 0; margin-bottom: 0.1rem;"> 인덕도仁德圖</h2>
 <h3 style="margin-top: 0; font-size: 1rem; margin-bottom: 3rem;">- 인덕원 디지털맵 -</h3>
 
@@ -47,10 +10,10 @@
 
 결과적으로, 디지털맵 ‘인덕도’는 일상과 추억을 공유하는 저장소가 된다.
 
-(출처: [인덕도란?](https://indeogdo.bground-archi.com/sites/261ef9c4-8889-4392-817d-dd22a2fe17ae])) 
+(출처: [인덕도란?](https://indeogdo.bground-archi.com])) 
 </div>
 
-<div class="header-info">
+<div style="margin: auto 22px 12px 0; border-left: 0.5px black solid; padding-left: 15px; flex: 0 0 auto; min-width: 200px;">
 <b>진행기간:</b> 2025.10.10 ~ 2025.11.20 <br />
 <b>기획:</b> 문화예술단체 골목길 <br />
 <b>웹 개발:</b> 곽도희 <br />
