@@ -123,14 +123,17 @@ function BoardEditContainer({ siteData, onChange, clusterId }) {
       }
 
       const targetSiteId = isEditing ? siteId : result.id;
+      const parseCoordinate = (value) => {
+        if (value === '' || value === null || value === undefined) {
+          return null;
+        }
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
+      };
+
       const submittedAddresses = (formValues.addresses || []).map((entry) => {
-        // 위도/경도가 빈 문자열이면 null로 변환
-        const latitude = entry.latitude === '' || entry.latitude === null || entry.latitude === undefined
-          ? null
-          : entry.latitude;
-        const longitude = entry.longitude === '' || entry.longitude === null || entry.longitude === undefined
-          ? null
-          : entry.longitude;
+        const latitude = parseCoordinate(entry.latitude);
+        const longitude = parseCoordinate(entry.longitude);
 
         return {
           addressId: entry.addressId || null,
@@ -485,70 +488,77 @@ function BoardEditContainer({ siteData, onChange, clusterId }) {
                 if (isCoordinateField || (!hasAddress && hasCoordinates)) {
                   return (
                     <S.AddressItem key={field.id ?? `address-${index}`}>
-                      <S.CoordinatesInputWrapper>
-                        <S.CoordinatesInputGroup>
-                          <S.BoardTextInput
-                            type="text"
-                            placeholder="위도를 입력하세요"
-                            {...register(`addresses.${index}.latitude`)}
-                            disabled={areaValue}
-                          />
-                        </S.CoordinatesInputGroup>
-                        <S.CoordinatesInputGroup>
-                          <S.BoardTextInput
-                            type="text"
-                            placeholder="경도를 입력하세요"
-                            {...register(`addresses.${index}.longitude`)}
-                            disabled={areaValue}
-                          />
-                        </S.CoordinatesInputGroup>
-                        <input type="hidden" {...register(`addresses.${index}.address`)} />
-                        <input type="hidden" {...register(`addresses.${index}.addressId`)} />
-                      </S.CoordinatesInputWrapper>
-                      {addressFields.length > 1 && (
-                        <S.AddressActions>
-                          <S.AddressRemoveButton
-                            type="button"
-                            onClick={() => {
-                              setCoordinateFieldIndices(prev => {
-                                const newSet = new Set(prev);
-                                newSet.delete(index);
-                                return newSet;
+                      <S.AddressInputRow>
+                        <S.CoordinatesInputWrapper>
+                          <S.CoordinatesInputGroup>
+                            <S.BoardTextInput
+                              type="text"
+                              placeholder="위도를 입력하세요"
+                              {...register(`addresses.${index}.latitude`)}
+                              disabled={areaValue}
+                            />
+                          </S.CoordinatesInputGroup>
+                          <S.CoordinatesInputGroup>
+                            <S.BoardTextInput
+                              type="text"
+                              placeholder="경도를 입력하세요"
+                              {...register(`addresses.${index}.longitude`)}
+                              disabled={areaValue}
+                            />
+                          </S.CoordinatesInputGroup>
+                          <input type="hidden" {...register(`addresses.${index}.address`)} />
+                          <input type="hidden" {...register(`addresses.${index}.addressId`)} />
+                        </S.CoordinatesInputWrapper>
+                        <S.AddressIconRemoveButton
+                          type="button"
+                          aria-label="위치 삭제"
+                          title="이 위치 삭제"
+                          onClick={() => {
+                            setCoordinateFieldIndices(prev => {
+                              const updatedSet = new Set();
+                              prev.forEach((idx) => {
+                                if (idx < index) {
+                                  updatedSet.add(idx);
+                                } else if (idx > index) {
+                                  updatedSet.add(idx - 1);
+                                }
                               });
-                              handleRemoveAddress(index);
-                            }}
-                            disabled={areaValue}
-                          >
-                            삭제
-                          </S.AddressRemoveButton>
-                        </S.AddressActions>
-                      )}
+                              return updatedSet;
+                            });
+                            handleRemoveAddress(index);
+                          }}
+                          disabled={areaValue}
+                        >
+                          ×
+                        </S.AddressIconRemoveButton>
+                      </S.AddressInputRow>
                     </S.AddressItem>
                   );
                 } else if (hasAddress || !hasAddress) {
                   // 주소 입력 UI (기본)
                   return (
                     <S.AddressItem key={field.id ?? `address-${index}`}>
-                      <S.AddressInputWrapper>
-                        <AddressSearch
-                          setValue={setValue}
-                          register={register}
-                          namePrefix={`addresses.${index}`}
-                          error={errors?.addresses?.[index]?.address?.message}
-                          disabled={areaValue}
-                        />
-                      </S.AddressInputWrapper>
-                      {addressFields.length > 1 && (
-                        <S.AddressActions>
-                          <S.AddressRemoveButton
-                            type="button"
-                            onClick={() => handleRemoveAddress(index)}
+                      <S.AddressInputRow>
+                        <S.AddressInputWrapper>
+                          <AddressSearch
+                            setValue={setValue}
+                            register={register}
+                            control={control}
+                            namePrefix={`addresses.${index}`}
+                            error={errors?.addresses?.[index]?.address?.message}
                             disabled={areaValue}
-                          >
-                            삭제
-                          </S.AddressRemoveButton>
-                        </S.AddressActions>
-                      )}
+                          />
+                        </S.AddressInputWrapper>
+                        <S.AddressIconRemoveButton
+                          type="button"
+                          aria-label="주소 삭제"
+                          title="이 주소 삭제"
+                          onClick={() => handleRemoveAddress(index)}
+                          disabled={areaValue}
+                        >
+                          ×
+                        </S.AddressIconRemoveButton>
+                      </S.AddressInputRow>
                     </S.AddressItem>
                   );
                 }

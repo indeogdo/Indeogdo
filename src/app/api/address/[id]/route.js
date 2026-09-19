@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
 // 특정 Address 조회
-export async function GET(request, { params }) {
+export async function GET(request, context) {
   try {
-    const { id } = params;
+    const { id } = await context.params;
 
     if (!id) {
       return NextResponse.json(
@@ -55,9 +55,9 @@ export async function GET(request, { params }) {
 }
 
 // Address 수정
-export async function PUT(request, { params }) {
+export async function PUT(request, context) {
   try {
-    const { id } = params;
+    const { id } = await context.params;
     const body = await request.json();
     const { name, latitude, longitude, site_id } = body;
 
@@ -146,9 +146,9 @@ export async function PUT(request, { params }) {
 }
 
 // Address 삭제
-export async function DELETE(request, { params }) {
+export async function DELETE(request, context) {
   try {
-    const { id } = params;
+    const { id } = await context.params;
 
     if (!id) {
       return NextResponse.json(

@@ -1,6 +1,84 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import useMobile from '@/hooks/useMobile';
 
+const MAPS_SCRIPT_SELECTOR = 'script[src*="maps.googleapis.com/maps/api/js"]';
+const MAPS_READY_TIMEOUT_MS = 15000;
+
+function isGoogleMapsReady() {
+  const maps = window.google?.maps;
+  if (!maps) {
+    return false;
+  }
+  return (
+    typeof maps.Map === 'function' ||
+    typeof maps.importLibrary === 'function'
+  );
+}
+
+function waitForGoogleMapsReady() {
+  if (isGoogleMapsReady()) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve, reject) => {
+    const startedAt = Date.now();
+    const tick = () => {
+      if (isGoogleMapsReady()) {
+        resolve();
+        return;
+      }
+      if (Date.now() - startedAt > MAPS_READY_TIMEOUT_MS) {
+        reject(new Error('Google Maps API failed to initialize'));
+        return;
+      }
+      setTimeout(tick, 50);
+    };
+    tick();
+  });
+}
+
+function loadGoogleMapsScript(apiKey) {
+  if (isGoogleMapsReady()) {
+    return Promise.resolve();
+  }
+
+  const existingScript = document.querySelector(MAPS_SCRIPT_SELECTOR);
+  if (existingScript) {
+    return waitForGoogleMapsReady();
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&region=KR&language=ko&libraries=places,marker&v=weekly`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      waitForGoogleMapsReady().then(resolve).catch(reject);
+    };
+    script.onerror = () => reject(new Error('Failed to load Google Maps script'));
+    document.head.appendChild(script);
+  });
+}
+
+async function createGoogleMap(mapElement, options) {
+  const maps = window.google.maps;
+
+  if (typeof maps.importLibrary === 'function') {
+    const { Map } = await maps.importLibrary('maps');
+    await Promise.all([
+      maps.importLibrary('places'),
+      maps.importLibrary('marker'),
+    ]);
+    return new Map(mapElement, options);
+  }
+
+  if (typeof maps.Map !== 'function') {
+    throw new Error('Google Maps Map constructor is not available');
+  }
+
+  return new maps.Map(mapElement, options);
+}
+
 // 지도 초기화를 위한 커스텀 훅
 const useMapInitialization = () => {
   const mapRef = useRef(null);
@@ -413,59 +491,23 @@ const useMapInitialization = () => {
             throw new Error(data.error || 'Failed to get API key');
           }
 
-          // 구글 지도 스크립트가 이미 로드되었는지 확인
-          if (window.google && window.google.maps) {
-            // 이미 로드된 경우 바로 지도 생성
-            const map = new google.maps.Map(mapRef.current, {
-              center: { lat, lng },
-              zoom,
-              mapTypeId: 'roadmap',
-              disableDefaultUI: true,
-              styles: getMapStyles() // mapId 제거, styles 직접 설정
-            });
-            setMapInstance(map);
-            setLoading(false);
-            setMapInitialized(true);
-            setInitialPosition({ lat, lng, zoom });
-            return;
-          }
+          await loadGoogleMapsScript(data.apiKey);
 
-          // 구글 지도 스크립트 동적 로드 (marker 라이브러리 추가)
-          const script = document.createElement('script');
-          script.src = `https://maps.googleapis.com/maps/api/js?key=${data.apiKey}&loading=async&region=KR&language=ko&libraries=places,marker&v=weekly`;
-          script.async = true;
-          script.defer = true;
+          const map = await createGoogleMap(mapRef.current, {
+            center: { lat, lng },
+            zoom,
+            mapTypeId: 'roadmap',
+            disableDefaultUI: true,
+            styles: getMapStyles(),
+          });
 
-          script.onload = () => {
-            setTimeout(() => {
-              try {
-                const map = new google.maps.Map(mapRef.current, {
-                  center: { lat, lng },
-                  zoom,
-                  mapTypeId: 'roadmap',
-                  disableDefaultUI: true,
-                  styles: getMapStyles() // mapId 제거, styles 직접 설정
-                });
-                setMapInstance(map);
-                setLoading(false);
-                setMapInitialized(true);
-                setInitialPosition({ lat, lng, zoom });
-              } catch (error) {
-                console.error('Map initialization error:', error);
-                setError(error.message);
-                setLoading(false);
-              }
-            }, 500);
-          };
-
-          script.onerror = () => {
-            setError('Failed to load Google Maps script');
-            setLoading(false);
-          };
-
-          document.head.appendChild(script);
+          setMapInstance(map);
+          setLoading(false);
+          setMapInitialized(true);
+          setInitialPosition({ lat, lng, zoom });
 
         } catch (error) {
+          console.error('Map initialization error:', error);
           setError(error.message);
           setLoading(false);
         }

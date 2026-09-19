@@ -1,8 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useWatch } from 'react-hook-form';
 import DaumPostcodeEmbed from 'react-daum-postcode';
 import * as S from '@/styles/Sites/board.style';
 
-export default function AddressSearch({ register, setValue, namePrefix, error, disabled = false }) {
+export default function AddressSearch({
+  register,
+  setValue,
+  control,
+  namePrefix,
+  error,
+  disabled = false,
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [kakaoLoaded, setKakaoLoaded] = useState(false);
 
@@ -10,6 +18,16 @@ export default function AddressSearch({ register, setValue, namePrefix, error, d
   const latitudeField = namePrefix ? `${namePrefix}.latitude` : 'latitude';
   const longitudeField = namePrefix ? `${namePrefix}.longitude` : 'longitude';
   const idField = namePrefix ? `${namePrefix}.addressId` : 'addressId';
+
+  const latitude = useWatch({ control, name: latitudeField });
+  const longitude = useWatch({ control, name: longitudeField });
+  const hasCoordinates =
+    latitude !== null &&
+    latitude !== undefined &&
+    latitude !== '' &&
+    longitude !== null &&
+    longitude !== undefined &&
+    longitude !== '';
 
   // Kakao Maps SDK 로딩과 초기화를 별도의 useEffect에서 처리
   useEffect(() => {
@@ -106,11 +124,12 @@ export default function AddressSearch({ register, setValue, namePrefix, error, d
       if (extraAddress) fullAddress += ` (${extraAddress})`;
     }
 
-    const coords = await convertAddressToCoords(fullAddress);
+    const geocodeQuery = data.roadAddress || data.jibunAddress || data.address;
+    const coords = await convertAddressToCoords(geocodeQuery);
 
     setValue(addressField, fullAddress, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-    setValue(latitudeField, coords.latitude, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-    setValue(longitudeField, coords.longitude, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+    setValue(latitudeField, coords.latitude ?? null, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+    setValue(longitudeField, coords.longitude ?? null, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
 
     setIsOpen(false);
   };
@@ -127,6 +146,11 @@ export default function AddressSearch({ register, setValue, namePrefix, error, d
       <input type="hidden" {...register(latitudeField)} />
       <input type="hidden" {...register(longitudeField)} />
       <input type="hidden" {...register(idField)} />
+      {hasCoordinates && (
+        <S.AddressCoordinateHint>
+          위도 {latitude} · 경도 {longitude}
+        </S.AddressCoordinateHint>
+      )}
       {error && <S.BoardInputError>{error}</S.BoardInputError>}
       {isOpen && !disabled && <DaumPostcodeEmbed onComplete={handleComplete} style={{ border: '1px solid black', borderRadius: '8px', marginTop: '6px', padding: '2px 3px', width: '100%' }} />}
     </>

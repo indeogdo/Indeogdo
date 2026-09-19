@@ -457,6 +457,50 @@ export const AddressInputWrapper = styled.div`
   flex: 1;
 `
 
+export const AddressInputRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+`
+
+export const AddressIconRemoveButton = styled.button`
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  margin-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  line-height: 1;
+  font-weight: 400;
+  color: #666;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    color: #d64545;
+    border-color: #d64545;
+    background: #fff5f5;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+`
+
+export const AddressCoordinateHint = styled.p`
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: #555;
+  line-height: 1.4;
+`
+
 export const AddressActions = styled.div`
   display: flex;
   align-items: center;
