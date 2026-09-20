@@ -15,7 +15,7 @@ const buildMarkerIcon = (url) => {
 const useSiteMarkers = (mapInstance) => {
   const [siteMarkers, setSiteMarkers] = useState([]);
   const siteMarkersRef = useRef([]);
-  const activeMarkerRef = useRef(null);
+  const activeMarkersRef = useRef([]);
   const activeSiteIdRef = useRef(null);
 
   const fitMapToSiteMarkers = useCallback((options = {}) => {
@@ -60,10 +60,10 @@ const useSiteMarkers = (mapInstance) => {
   }, [mapInstance]);
 
   const stopActiveMarkerAnimation = useCallback(() => {
-    if (activeMarkerRef.current) {
-      activeMarkerRef.current.setAnimation(null);
-      activeMarkerRef.current = null;
-    }
+    activeMarkersRef.current.forEach(marker => {
+      marker.setAnimation(null);
+    });
+    activeMarkersRef.current = [];
   }, []);
 
   const applyActiveMarkerAnimation = useCallback(() => {
@@ -72,7 +72,7 @@ const useSiteMarkers = (mapInstance) => {
       return;
     }
 
-    const targetMarker = siteMarkersRef.current.find(
+    const targetMarkers = siteMarkersRef.current.filter(
       marker => marker._siteId === activeSiteIdRef.current
     );
 
@@ -80,14 +80,12 @@ const useSiteMarkers = (mapInstance) => {
       return;
     }
 
-    if (activeMarkerRef.current && activeMarkerRef.current !== targetMarker) {
-      stopActiveMarkerAnimation();
-    }
+    stopActiveMarkerAnimation();
 
-    if (targetMarker) {
-      targetMarker.setAnimation(window.google.maps.Animation.BOUNCE);
-      activeMarkerRef.current = targetMarker;
-    }
+    targetMarkers.forEach(marker => {
+      marker.setAnimation(window.google.maps.Animation.BOUNCE);
+    });
+    activeMarkersRef.current = targetMarkers;
   }, [stopActiveMarkerAnimation]);
 
   const setActiveSiteMarker = useCallback((siteId) => {
@@ -148,11 +146,9 @@ const useSiteMarkers = (mapInstance) => {
 
     // 제거할 마커들 제거
     markersToRemove.forEach(marker => {
+      marker.setAnimation(null);
       marker.setMap(null);
     });
-    if (activeMarkerRef.current && markersToRemove.includes(activeMarkerRef.current)) {
-      stopActiveMarkerAnimation();
-    }
 
     // 새로 추가할 마커들 생성
     const newMarkers = [];
